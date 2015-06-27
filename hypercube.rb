@@ -9,7 +9,7 @@ class Hypercube
     @neighbor = Array.new
   end
 
-  def get_neighbor
+  def get_neighbors
     neighbor = Array.new
     for address in 0...size
       for i in 0...dim
