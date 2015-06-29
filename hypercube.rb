@@ -4,11 +4,11 @@ class Hypercube
   def initialize(dim, ratio=0.0)
     @dim      = dim
     @size     = 2**dim
-    @neighbor = get_neighbors
+    @neighbor = set_neighbors
     @fault    = set_fault(ratio)
   end
 
-  def get_neighbors
+  def set_neighbors
     neighbors = Array.new
     for address in 0...size
       for i in 0...dim
