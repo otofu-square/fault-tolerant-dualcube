@@ -2,8 +2,6 @@ require './bit_counter'
 require './node_printer'
 
 class Hypercube
-  include NodePrinter
-
   attr_reader :dim, :size, :neighbors, :fault
 
   def initialize(dim, ratio=0.0)
@@ -12,6 +10,8 @@ class Hypercube
     @neighbors = set_neighbors
     @fault     = set_fault(ratio)
   end
+
+  include NodePrinter
 
   def neighbor?(a, b)
     neighbors[a].include?(b)
