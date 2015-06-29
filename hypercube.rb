@@ -8,6 +8,17 @@ class Hypercube
     @fault    = set_fault(ratio)
   end
 
+  def get_binary_address(address)
+    "#{address} : %0#{dim}b" % address
+  end
+
+  def print_nodes
+    for i in 0...size
+      puts get_binary_address(i)
+    end
+  end
+
+  private
   def set_neighbors
     neighbors = Array.new
     for address in 0...size
@@ -23,16 +34,6 @@ class Hypercube
     fault = Array.new(size, 0)
     (0...size).to_a.sample((size*ratio).floor).each {|i| puts i; puts fault[i] = 1}
     fault
-  end
-
-  def get_binary_address(address)
-    "#{address} : %0#{dim}b" % address
-  end
-
-  def print_nodes
-    for i in 0...size
-      puts get_binary_address(i)
-    end
   end
 end
 
