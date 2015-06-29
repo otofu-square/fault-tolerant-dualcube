@@ -1,3 +1,5 @@
+require './bit_counter'
+
 class Hypercube
   attr_reader :dim, :size, :neighbors, :fault
 
@@ -9,7 +11,7 @@ class Hypercube
   end
 
   def get_distance(s, d)
-    count_bit(s^d)
+    Integer::count_bit(s^d)
   end
 
   def print_nodes
@@ -34,15 +36,6 @@ class Hypercube
     fault = Array.new(size, 0)
     (0...size).to_a.sample((size*ratio).floor).each { |i| fault[i] = 1 }
     fault
-  end
-
-  def count_bit(i)
-    i = i - ((i >> 1) & 0x55555555)
-    i = (i & 0x33333333) + ((i >> 2) & 0x33333333)
-    i = (i + (i >> 4)) & 0x0f0f0f0f
-    i = i + (i >> 8)
-    i = i + (i >> 16)
-    i & 0x3f;
   end
 
   def get_binary_address(address)
