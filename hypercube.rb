@@ -1,13 +1,11 @@
 class Hypercube
-  attr_reader   :dim, :size
-  attr_accessor :neighbor
+  attr_reader :dim, :size, :neighbors, :fault
 
-
-  def initialize(dim)
-    @dim        = dim
-    @size       = 2**dim
-    @neighbor ||= get_neighbors
-    #️ @fault      = set_fault
+  def initialize(dim, ratio=0.0)
+    @dim      = dim
+    @size     = 2**dim
+    @neighbor = get_neighbors
+    @fault    = set_fault(ratio)
   end
 
   def get_neighbors
@@ -19,6 +17,12 @@ class Hypercube
       end
     end
     neighbors
+  end
+
+  def set_fault(ratio)
+    fault = Array.new(size, 0)
+    (0...size).to_a.sample((size*ratio).floor).each {|i| puts i; puts fault[i] = 1}
+    fault
   end
 
   def get_binary_address(address)
