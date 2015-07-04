@@ -2,11 +2,12 @@ require './bit_counter'
 require './node_printer'
 
 class Hypercube
-  attr_reader :dim, :size, :neighbors, :fault
+  attr_reader :dim, :size, :addlen, :neighbors, :fault
 
   def initialize(dim, ratio=0.0)
     @dim       = dim
     @size      = 2**dim
+    @addlen    = dim
     @neighbors = set_neighbors
     @fault     = set_fault(ratio)
   end
@@ -39,7 +40,3 @@ class Hypercube
     fault
   end
 end
-
-hypercube = Hypercube.new(10, 0.5)
-hypercube.print_nodes
-p hypercube.neighbor?(0, 3)

@@ -18,6 +18,6 @@ module NodePrinter
 
   private
   def get_binary_address(address)
-    "%0#{dim}b" % address
+    "%0#{addlen}b" % address
   end
 end

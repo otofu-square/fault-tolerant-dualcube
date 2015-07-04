@@ -2,11 +2,12 @@ require './bit_counter'
 require './node_printer'
 
 class Dualcube
-  attr_reader :dim, :size, :neighbors, :fault
+  attr_reader :dim, :size, :addlen, :neighbors, :fault
 
   def initialize(dim, ratio=0.0)
     @dim       = dim
     @size      = 2**(2*dim+1)
+    @addlen    = 2*dim+1
     @neighbors = set_neighbors
     @fault     = set_fault(ratio)
   end
@@ -15,6 +16,14 @@ class Dualcube
 
   def neighbor?(a, b)
     neighbors[a].include?(b)
+  end
+
+  def get_class_id(address)
+    address>>(2*dim)
+  end
+
+  def get_cluster_id(address)
+    get_class_id(address) == 1 ? (address>>dim)&(2**dim-1) : (address)&(2**dim-1)
   end
 
   def get_distance(a, b)
@@ -27,7 +36,7 @@ class Dualcube
     for address in 0...size
       for i in 0...dim
         neighbors[address] ||= Array.new
-        (address>>(2*dim)) == 1 ? data = i+dim : data = i
+        get_class_id(address) == 1 ? data = i+dim : data = i
         neighbors[address].push address^(2**data)
       end
       neighbors[address].push address^(1<<(2*dim)) # cross neighbor
@@ -42,6 +51,6 @@ class Dualcube
   end
 end
 
-# dualcube = Dualcube.new(10, 0           .5)
+# dualcube = Dualcube.new(10, 0.5)
 # dualcube.print_nodes
 # p dualcube.neighbor?(0, 3)
