@@ -4,12 +4,12 @@ require './node_printer'
 class Dualcube
   attr_reader :dim, :size, :addlen, :neighbors, :fault
 
-  def initialize(dim, ratio=0.0)
+  def initialize(dim, ratio=0.0, mode="whole")
     @dim       = dim
     @size      = 2**(2*dim+1)
     @addlen    = 2*dim+1
     @neighbors = set_neighbors
-    @fault     = set_fault(ratio)
+    @fault     = set_fault(ratio, mode)
   end
 
   include NodePrinter

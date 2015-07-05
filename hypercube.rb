@@ -3,6 +3,7 @@ require './node_printer'
 
 class Hypercube
   attr_reader :dim, :size, :addlen, :neighbors, :fault
+  attr_accessor :status
 
   def initialize(dim, ratio=0.0)
     @dim       = dim
@@ -10,6 +11,7 @@ class Hypercube
     @addlen    = dim
     @neighbors = set_neighbors
     @fault     = set_fault(ratio)
+    @status    = Array.new
   end
 
   include NodePrinter
@@ -20,6 +22,27 @@ class Hypercube
 
   def get_distance(a, b)
     Integer::count_bit(a^b)
+  end
+
+  def get_cluster_status
+    dim.times do |cnt|
+      size.times do |current|
+        status[current] ||= Array.new
+        next if self.fault[current] == 1 # 自身が故障していたらスルー
+
+        neighbors[current].each do |neighbor|
+          if cnt == 0
+            status[current].push(neighbor) unless fault[neighbor] == 1
+          else
+            status[neighbor].each do |node|
+              unless (status[current].include?(node))
+                status[current].push(node)
+              end
+            end
+          end
+        end
+      end
+    end
   end
 
   private

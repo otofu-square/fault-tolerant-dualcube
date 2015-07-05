@@ -1,3 +1,5 @@
+require "pp"
+
 module NodePrinter
   def print_node(address)
     puts "%4d : #{get_binary_address(address)} [f=#{fault[address]}]" % address
@@ -13,6 +15,14 @@ module NodePrinter
     print_node(address)
     neighbors[address].each do |i|
       print_node(i)
+    end
+  end
+
+  def print_status
+    for address in 0...size
+      puts "#{get_binary_address(address)} : "
+      pp status[address]
+      puts
     end
   end
 
