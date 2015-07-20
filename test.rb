@@ -1,10 +1,10 @@
 require 'benchmark'
-require './hypercube'
+require './dualcube'
+require 'pp'
 
-hc = Hypercube.new(6, 0)
-hc.init_fault
-result = Benchmark.realtime do
-  hc.get_cluster_status
-end
+dim = 2
+ratio = 0.2
 
-p result
+dc = Dualcube.new(dim, ratio)
+dc.set_probability
+pp dc.probability
