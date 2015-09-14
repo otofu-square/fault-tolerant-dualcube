@@ -84,6 +84,14 @@ class Dualcube
     end
   end
 
+  def get_nodes_by_distance(curr_node, distance)
+    result = Array.new
+    for node in 1...@size
+      result.push(node) if distance == get_distance(curr_node, node)
+    end
+    result
+  end
+
   private
   def set_neighbors
     neighbors = Array.new
