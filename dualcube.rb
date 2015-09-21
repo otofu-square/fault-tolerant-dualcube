@@ -15,10 +15,9 @@ class Dualcube
     @neighbors       = set_neighbors
     @fault           = set_fault(ratio)
     # @probability     = Hash.new { |hash,key| hash[key] = {} }
-    @preffered_nodes = Hash.new { |hash,key| hash[key] = Hash.new { |hash,key| hash[key] = [] } }
-    @cross_status    = Hash.new { |hash,key| hash[key] = [] }
+    # @preffered_nodes = Hash.new { |hash,key| hash[key] = Hash.new { |hash,key| hash[key] = [] } }
+    # @cross_status    = Hash.new { |hash,key| hash[key] = [] }
     # @capability  = Array.new(@size) { Array.new(@dim+1) }
-    # @directed_ca = Array.new(@size) { Array.new(@dim) { Array.new(@dim+1) } }
   end
 
   include NodePrinter
