@@ -63,17 +63,23 @@ end
 # 確率値の計算
 res1 = {}
 res2 = {}
-res_1.each do |hash|
-  distance = hash.first
-  res1[distance] = hash[1][1].to_f / hash[1]["max"].to_f if hash[1]["max"] != 0
+res3 = {}
+
+for distance in 1..(dim)
+  res1[distance] = distance.to_f / dim.to_f
 end
 
-res_2.each do |hash|
+res_1.each do |hash|
   distance = hash.first
   res2[distance] = hash[1][1].to_f / hash[1]["max"].to_f if hash[1]["max"] != 0
 end
 
-res = {pre_prob_1: res1, pre_prob_2: res2}
+res_2.each do |hash|
+  distance = hash.first
+  res3[distance] = hash[1][1].to_f / hash[1]["max"].to_f if hash[1]["max"] != 0
+end
+
+res = {pre_prob_1: res1, pre_prob_2: res2, pre_prob_3: res3}
 
 open("cache/pre_prob_#{dim}.yml", "w") do |e|
   YAML.dump(res, e)
