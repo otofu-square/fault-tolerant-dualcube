@@ -1,6 +1,8 @@
 ---
 :pre_prob_1:
+  1: 1.0
+:pre_prob_2:
   2: 1.0
   3: 1.0
-:pre_prob_2:
+:pre_prob_3:
   4: 1.0
