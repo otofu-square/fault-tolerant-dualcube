@@ -3,8 +3,8 @@ module ExtendedProbability
 
   def set_probability
     @probability1 = Array.new(@size) { Hash.new() }
-    @probability2 = hash = Hash.new { |h,k| h[k] = Hash.new(&h.default_proc) }
-    @probability3 = hash = Hash.new { |h,k| h[k] = Hash.new(&h.default_proc) }
+    @probability2 = Hash.new { |h,k| h[k] = Hash.new(&h.default_proc) }
+    @probability3 = Hash.new { |h,k| h[k] = Hash.new(&h.default_proc) }
 
     calc_probability_1
     calc_probability_2_cross

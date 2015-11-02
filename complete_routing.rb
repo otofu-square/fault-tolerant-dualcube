@@ -83,8 +83,7 @@ module CompleteRouting
         next_node = get_cross_neighbor(s) if fault[get_cross_neighbor(s)] == 0
       end
     else # 同じクラスの異なるクラスタにある場合
-    end
-      
+    end 
   end
 
   def get_status_for_dualcube
