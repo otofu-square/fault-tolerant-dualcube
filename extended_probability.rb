@@ -104,7 +104,23 @@ module ExtendedProbability
   end
 
   def calc_prob_3_cube
-
+    for distance in 4..@addlen
+      @size.times do |node|
+        neighbors = self.get_cube_neighbors(node)
+        if fault[node] == 1
+          @prob_3[:cube][node][distance] = 0.0
+        else
+          temp_prob = 1
+          neighbors.each do |neighbor|
+            temp_prob *= (1-@prob_3[:cross][neighbor][distance-1])
+            if distance != 4
+              temp_prob *= (1-@pre_prob_3[distance]*@prob_3[:cube][neighbor][distance-1])
+            end
+          end
+          @prob_3[:cube][node][distance] = 1 - temp_prob
+        end
+      end
+    end
   end
 
   def load_cache(pattern)
