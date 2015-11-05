@@ -13,7 +13,7 @@ module ExtendedProbability
 
     calc_prob_1
     calc_prob_2
-    pp @prob_2
+    calc_prob_3
   end
 
   private
@@ -91,9 +91,20 @@ module ExtendedProbability
   end
 
   def calc_prob_3_cross
+    for distance in 3..(@addlen+1)
+      @size.times do |node|
+        cross = self.get_cross_neighbor(node)
+        if fault[node] == 1 || fault[cross] == 1
+          @prob_3[:cross][node][distance] = 0.0
+        else
+          @prob_3[:cross][node][distance] = @prob_2[:cube][cross][distance-1]
+        end
+      end
+    end
   end
 
   def calc_prob_3_cube
+
   end
 
   def load_cache(pattern)
