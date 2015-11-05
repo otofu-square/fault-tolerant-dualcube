@@ -2,8 +2,6 @@ require './bit_counter'
 require './node_printer'
 require './complete_routing'
 require './extended_probability.rb'
-# require './probability_routing'
-# require './capability_routing'
 
 class Dualcube
   attr_reader   :dim, :size, :addlen, :neighbors, :fault
