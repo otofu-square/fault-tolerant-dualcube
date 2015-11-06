@@ -17,6 +17,11 @@ module ExtendedProbability
   end
 
   private
+  def load_cache(pattern)
+    data = YAML.load_file("cache/pre_prob_#{@dim}.yml")
+    data[pattern]
+  end
+  
   def calc_prob_1
     for distance in 1..@dim
       @size.times do |node|
@@ -121,10 +126,5 @@ module ExtendedProbability
         end
       end
     end
-  end
-
-  def load_cache(pattern)
-    data = YAML.load_file("cache/pre_prob_#{@dim}.yml")
-    data[pattern]
   end
 end
