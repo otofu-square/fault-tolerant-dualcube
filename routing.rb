@@ -1,3 +1,0 @@
-module Routing
-  
-end
