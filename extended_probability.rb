@@ -127,4 +127,18 @@ module ExtendedProbability
       end
     end
   end
+
+  def get_highest_probability(nodes, distance, prob_type)
+    arr = nodes.map do |node|
+      case prob_type
+      when :prob_1
+        @prob_1[node][distance]
+      when :prob_2
+        @prob_2[:cube][node][distance]
+      when :prob_3
+        @prob_2[:cube][node][distance]
+      end
+    end
+    arr.max
+  end
 end
