@@ -1,12 +1,12 @@
 require './lib/bit_counter'
 require './lib/node_printer'
+require './extended_probability'
 
 class Dualcube
   attr_reader   :dim, :size, :addlen, :neighbors, :fault
   attr_accessor :capability, :probability, :preffered_nodes, :cross_status
 
   include NodePrinter
-  include CompleteRouting
   include ExtendedProbability
 
   def initialize(dim, ratio=0.0)
@@ -71,6 +71,12 @@ class Dualcube
 
   def get_preffered_nodes(s, d)
     @neighbors[s].reject{|n| get_distance(n, d) >= get_distance(s, d)}
+  end
+
+  def get_position(c, d)
+    return :position_1 if same_cluster?(c, d)
+    return :position_2 if !same_cluster?(c, d) && !same_class?(c, d)
+    return :position_3 if !same_cluster?(c, d) && same_class?(c, d)
   end
 
   def neighbor?(a, b)
