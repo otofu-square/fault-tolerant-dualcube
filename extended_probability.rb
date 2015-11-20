@@ -16,12 +16,111 @@ module ExtendedProbability
     calc_prob_3
   end
 
+  def get_next_node(c, d, before)
+    # 目的節点と現在節点が隣接していたら経路選択成功
+    return d if self.get_distance(c, d) == 1
+
+    distance  = self.get_distance(c, d)
+    position  = self.get_position(c, d)
+    cross     = self.get_cross_neighbor(c)
+    neighbors = @neighbors[c].reject{|n| @fault[n]==1 || n==before}
+    pre_nodes = self.get_preffered_nodes(c, d).reject do |n|
+                  @fault[n]==1 || n==before
+                end
+    spr_nodes = neighbors.reject{|n| pre_nodes.include?(n) || n==cross}
+    next_node = -1;
+
+    # 前方/後方隣接節点がどちらも存在しない場合、経路選択失敗とする
+    return -1 if neighbors.size == 0
+
+    case position
+    when :position_1
+      if pre_nodes.empty?
+        next_node = get_detour_node_1(spr_nodes, cross, distance)
+      else
+        next_node = get_shortest_path_node_1(pre_nodes, distance)
+      end
+    when :position_2
+      intmed = self.get_intermediate_node(c, d)
+
+      # case 1
+      if c == intmed
+        next_node = cross
+      # case 2
+      elsif self.neighbor?(c, intmed)
+        if @prob_2[:cross][intmed][distance-1] > 0
+          next_node = intmed
+        else
+          next_node = get_detour_nodes_2(spr_nodes, cross, d, distance)
+        end
+      # case 3
+      else
+        if pre_nodes.empty?
+          # detour 1
+          if spr_nodes.empty?
+            next_node = cross
+          # detour 2
+          else
+            next_node = get_highest_probability(spr_nodes, distance+1, :prob_1)
+          end
+        else
+          next_node = get_highest_probability(pre_nodes, distance-1, :prob_1)
+        end
+      end
+    when :position_3
+      if pre_nodes.empty?
+        if spr_nodes.empty?
+          next_node = cross
+        else
+          next_node = get_detour_nodes_3(spr_nodes, cross, distance)
+        end
+      else
+        next_node = get_shortest_path_node_3(pre_nodes, cross, distance)
+      end
+    end
+
+    # Final check
+    return fault[next_node] == 0 ? next_node : -1
+  end
+
   private
   def load_cache(pattern)
     data = YAML.load_file("cache/pre_prob_#{@dim}.yml")
     data[pattern]
   end
-  
+
+  def get_shortest_path_node_1(pre_nodes, distance)
+    get_highest_probability(pre_nodes, distance-1, :prob_1)
+  end
+
+  def get_shortest_path_node_3(pre_nodes, cross, distance)
+    cube_node  = get_highest_probability(pre_nodes, distance-1, :prob_3)
+    cross_node = @prob_2[:cube][cross][distance-1]
+    return cube_node >= cross_node ? cube_node : cross_node
+  end
+
+  def get_detour_node_1(spr_nodes, cross, distance)
+    if spr_nodes.size > 0
+      get_highest_probability(spr_nodes, distance+1, :prob_1)
+    else
+      @fault[cross]==0 ? cross : -1
+    end
+  end
+
+  def get_detour_node_2(spr_nodes, cross, d, distance)
+    if @prob_3[:cube][cross][self.get_distance(cross, d)] > 0
+      cross
+    else
+      # 本当は確率値を確かめる必要があるが、一旦後方節点のうちクロスが死んでいないものを選択
+      spr_nodes.each {|n| return n if @prob_2[:cross][n][1] > 0}
+      return -1 # 無ければ失敗
+    end
+  end
+
+  def get_detour_node_3(spr_nodes, cross, distance)
+    spr_nodes.map{|n| @prob_3[:cross][n][distance+2]}.max
+  end
+
   def calc_prob_1
     for distance in 1..@dim
       @size.times do |node|
