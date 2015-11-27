@@ -1,4 +1,5 @@
 require 'yaml'
+require 'pry'
 
 module ExtendedProbability
   attr_accessor :prob_1, :prob_2, :prob_3
@@ -17,21 +18,21 @@ module ExtendedProbability
   end
 
   def get_next_node(c, d, before)
-    # 目的節点と現在節点が隣接していたら経路選択成功
-    return d if self.get_distance(c, d) == 1
-
     distance  = self.get_distance(c, d)
     position  = self.get_position(c, d)
     cross     = self.get_cross_neighbor(c)
     neighbors = @neighbors[c].reject{|n| @fault[n]==1 || n==before}
     pre_nodes = self.get_preffered_nodes(c, d).reject do |n|
-                  @fault[n]==1 || n==before
+                  @fault[n]==1 || n==before || n==cross
                 end
     spr_nodes = neighbors.reject{|n| pre_nodes.include?(n) || n==cross}
     next_node = -1;
 
     # 前方/後方隣接節点がどちらも存在しない場合、経路選択失敗とする
     return -1 if neighbors.size == 0
+
+    # 目的節点と現在節点が隣接していたら経路選択成功
+    return d if self.get_distance(c, d) == 1 && @fault[d] != 1
 
     case position
     when :position_1
@@ -45,13 +46,19 @@ module ExtendedProbability
 
       # case 1
       if c == intmed
-        next_node = cross
+        if @fault[cross] == 0
+          next_node = cross
+        else
+          spr_nodes.each do |n|
+            next_node = n if @fault[self.get_cross_neighbor(n)] == 0
+          end
+        end
       # case 2
       elsif self.neighbor?(c, intmed)
         if @prob_2[:cross][intmed][distance-1] > 0
           next_node = intmed
         else
-          next_node = get_detour_nodes_2(spr_nodes, cross, d, distance)
+          next_node = get_detour_node_2(spr_nodes, cross, d)
         end
       # case 3
       else
@@ -61,18 +68,28 @@ module ExtendedProbability
             next_node = cross
           # detour 2
           else
-            next_node = get_highest_probability(spr_nodes, distance+1, :prob_1)
+            next_node = get_highest_probability(spr_nodes, self.get_distance(c, intmed)+1, :prob_1)
           end
         else
-          next_node = get_highest_probability(pre_nodes, distance-1, :prob_1)
+          next_node = get_highest_probability(pre_nodes, self.get_distance(c, intmed)-1, :prob_1)
         end
       end
     when :position_3
-      if pre_nodes.empty?
-        if spr_nodes.empty?
+      intmed = self.get_intermediate_node(c, d)
+
+      # case 1
+      if c == intmed
+        cube_node = get_detour_node_3(spr_nodes, cross, distance)
+        if @prob_2[:cube][cross][distance-1] > 0
           next_node = cross
         else
-          next_node = get_detour_nodes_3(spr_nodes, cross, distance)
+          next_node = cube_node
+        end
+      elsif pre_nodes.empty?
+        if self.get_preffered_nodes(c, d).include?(cross) && @fault[cross]==0
+          next_node = cross
+        else
+          next_node = get_detour_node_3(spr_nodes, cross, distance)
         end
       else
         next_node = get_shortest_path_node_3(pre_nodes, cross, distance)
@@ -80,7 +97,7 @@ module ExtendedProbability
     end
 
     # Final check
-    return fault[next_node] == 0 ? next_node : -1
+    return fault[next_node] == 1 || before == next_node ? -1 : next_node
   end
 
   private
@@ -94,9 +111,10 @@ module ExtendedProbability
   end
 
   def get_shortest_path_node_3(pre_nodes, cross, distance)
-    cube_node  = get_highest_probability(pre_nodes, distance-1, :prob_3)
-    cross_node = @prob_2[:cube][cross][distance-1]
-    return cube_node >= cross_node ? cube_node : cross_node
+    cube_node  = get_highest_probability(pre_nodes, distance-1, :prob_3, :cross)
+    cube_prob  = cube_node == -1 ? 0.0 : @prob_3[:cross][cube_node][distance-1]
+    cross_prob = @prob_2[:cube][cross][distance-1]
+    return cube_prob >= cross_prob ? cube_node : cross
   end
 
   def get_detour_node_1(spr_nodes, cross, distance)
@@ -107,8 +125,12 @@ module ExtendedProbability
     end
   end
 
-  def get_detour_node_2(spr_nodes, cross, d, distance)
-    if @prob_3[:cube][cross][self.get_distance(cross, d)] > 0
+  def get_detour_node_2(spr_nodes, cross, d)
+    distance = self.get_distance(cross, d)
+    intmed = self.get_intermediate_node(cross, d)
+    distance = intmed == cross ? distance + 2 : distance
+
+    if @prob_3[:cube][cross][distance] > 0
       cross
     else
       # 本当は確率値を確かめる必要があるが、一旦後方節点のうちクロスが死んでいないものを選択
@@ -118,7 +140,7 @@ module ExtendedProbability
   end
 
   def get_detour_node_3(spr_nodes, cross, distance)
-    spr_nodes.map{|n| @prob_3[:cross][n][distance+2]}.max
+    get_highest_probability(spr_nodes, distance+1, :prob_3, :cross)
   end
 
   def calc_prob_1
@@ -227,17 +249,23 @@ module ExtendedProbability
     end
   end
 
-  def get_highest_probability(nodes, distance, prob_type)
-    arr = nodes.map do |node|
+  def get_highest_probability(nodes, distance, prob_type, direction=:cube)
+    max = 0.0; key = -1
+    nodes.map do |node|
       case prob_type
       when :prob_1
-        @prob_1[node][distance]
+        prob = @prob_1[node][distance]
       when :prob_2
-        @prob_2[:cube][node][distance]
+        prob = @prob_2[direction][node][distance]
       when :prob_3
-        @prob_2[:cube][node][distance]
+        prob = @prob_3[direction][node][distance]
+      end
+
+      if max < prob
+        max = prob
+        key = node
       end
     end
-    arr.max
+    key
   end
 end
