@@ -97,6 +97,10 @@ class Dualcube
     same_class?(a, b) && get_cluster_id(a) == get_cluster_id(b)
   end
 
+  def connect?(a, b)
+    BFS(a, b)
+  end
+
   private
   def set_neighbors
     neighbors = []
@@ -111,9 +115,20 @@ class Dualcube
     neighbors
   end
 
-  def set_fault(ratio)
-    fault = Array.new(size, 0)
-    (0...size).to_a.sample((size*ratio).floor).each { |i| fault[i] = 1 }
-    fault
+  def BFS(s, d)
+    return false if s>@size || d>@size || fault[s]==1 || fault[d]==1
+
+    checked = []
+    check   = [s]
+
+    while !check.empty?
+      c = check.shift
+      checked.push c
+      @neighbors[c].reject{|n| @fault[n]==1 || checked.include?(n)}.each do |n|
+        check.push n
+      end
+      return true if check.include?(d)
+    end
+    return false
   end
 end
