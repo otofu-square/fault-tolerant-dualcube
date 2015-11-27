@@ -3,8 +3,8 @@ require './lib/node_printer'
 require './extended_probability'
 
 class Dualcube
-  attr_reader   :dim, :size, :addlen, :neighbors, :fault
-  attr_accessor :capability, :probability, :preffered_nodes, :cross_status
+  attr_reader   :dim, :size, :addlen, :neighbors
+  attr_accessor :capability, :probability, :preffered_nodes, :cross_status, :fault
 
   include NodePrinter
   include ExtendedProbability
