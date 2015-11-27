@@ -17,6 +17,12 @@ class Dualcube
     @fault           = set_fault(ratio)
   end
 
+  def set_fault(ratio)
+    fault = Array.new(size, 0)
+    (0...size).to_a.sample((size*ratio).floor).each{|i| fault[i] = 1}
+    @fault = fault
+  end
+
   def create_node_id(class_id, cluster_id, node_id)
     if class_id == 1
       (class_id<<2*@dim) + (node_id<<@dim) + (cluster_id)
