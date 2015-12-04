@@ -24,7 +24,7 @@ module DirectedProbabilityVector
     # 目的節点と現在節点が隣接していたら経路選択成功
     return d if self.get_distance(c, d) == 1 && @fault[d] != 1
 
-    case position
+    case self.get_position(c, d)
     when :position_1
       next_node = route_on_position_1(c, d, before)
     when :position_2
@@ -53,7 +53,7 @@ module DirectedProbabilityVector
   def route_on_position_1(c, d, before)
     distance, cross, neighbors, pres, sprs = get_initial_state(c, d, before)
 
-    if pres.empty?
+    if !pres.empty?
       next_node = get_highest_probability(c, pres, distance-1, :prob_1)
     else
       if sprs.size > 0
@@ -81,7 +81,7 @@ module DirectedProbabilityVector
       end
     # case 2
     elsif self.neighbor?(c, intmed)
-      if @prob_2[:cross][intmed][c][distance-1] > 0
+      if @prob_2[:cross][intmed][distance-1] > 0
         next_node = intmed
       else
         next_node = get_detour_node_2(sprs, c, d, cross)
@@ -98,6 +98,11 @@ module DirectedProbabilityVector
         end
       else
         next_node = get_highest_probability(c, pres, self.get_distance(c, intmed)-1, :prob_1)
+
+        # presのintmedまでの到達確率が全て0の場合
+        if next_node == -1
+          next_node = @prob_3[:cube][cross][c][distance+1] > 0 && before != cross ? cross : get_highest_probability(c, pres, distance+1, :prob_3, :cross)
+        end
       end
     end
     next_node
@@ -122,7 +127,7 @@ module DirectedProbabilityVector
 
     # case 1
     if c == intmed
-      if @prob_2[:cube][cross][c][distance-1] > 0
+      if @prob_2[:cube][cross][c][distance-1] > 0 && before != cross
         next_node = cross
       else
         next_node = get_highest_probability(c, sprs, distance+1, :prob_3, :cross)
@@ -145,12 +150,10 @@ module DirectedProbabilityVector
   def calc_prob_1
     for distance in 1..@dim
       @size.times do |node|
-        next if fault[node] == 1
-
         @neighbors[node].each do |target|
           cube_neighbors = self.get_cube_neighbors(node).reject{|n| n==target}
 
-          if fault[target] == 1
+          if fault[target] == 1 || fault[node] == 1
             @prob_1[node][target][distance] = 0.0
             next
           end
@@ -275,9 +278,9 @@ module DirectedProbabilityVector
       when :prob_1
         prob = @prob_1[node][curr][distance]
       when :prob_2
-        prob = @prob_2[direction][node][curr][distance]
+        prob = direction == :cube ? @prob_2[direction][node][curr][distance] : @prob_2[direction][node][distance]
       when :prob_3
-        prob = @prob_3[direction][node][curr][distance]
+        prob = direction == :cube ? @prob_3[direction][node][curr][distance] : @prob_3[direction][node][distance]
       end
 
       if max < prob
