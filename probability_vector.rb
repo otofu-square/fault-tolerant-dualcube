@@ -1,7 +1,7 @@
 require 'yaml'
 require 'pry'
 
-module ExtendedProbability
+module ProbabilityVector
   attr_accessor :prob_1, :prob_2, :prob_3
 
   def set_probability
