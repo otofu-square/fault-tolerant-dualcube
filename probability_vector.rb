@@ -177,7 +177,7 @@ module ProbabilityVector
         if fault[node] == 1 || fault[cross] == 1
           @prob_2[:cross][node][distance] = 0.0
         else
-          @prob_2[:cross][node][distance] = distance == 1 ? 1.0 : @prob_1[node][distance-1]
+          @prob_2[:cross][node][distance] = distance == 1 ? 1.0 : @prob_1[cross][distance-1]
         end
       end
     end
@@ -187,25 +187,27 @@ module ProbabilityVector
     for distance in 2..@addlen
       @size.times do |node|
         neighbors = self.get_cube_neighbors(node)
+
         if fault[node] == 1
           @prob_2[:cube][node][distance] = 0.0
-        else
-          if distance == 2
-            cnt = 0
-            neighbors.each do |neighbor|
-              cnt += 1 if @prob_2[:cross][neighbor][1] == 1.0
-            end
-            @prob_2[:cube][node][2] = cnt / @dim.to_f
-          else
-            temp_prob = 1
-            neighbors.each do |neighbor|
-              temp_prob *=  (1-@pre_prob_2[distance]*@prob_2[:cube][neighbor][distance-1])
-              if distance < @dim+3
-                temp_prob *= (1-@prob_2[:cross][neighbor][distance-1])
-              end
-            end
-            @prob_2[:cube][node][distance] = 1 - temp_prob
+          next
+        end
+
+        if distance == 2
+          cnt = 0
+          neighbors.each do |neighbor|
+            cnt += 1 if @prob_2[:cross][neighbor][1] == 1.0
           end
+          @prob_2[:cube][node][2] = cnt / @dim.to_f
+        else
+          temp_prob = 1
+          neighbors.each do |neighbor|
+            temp_prob *=  (1-@pre_prob_2[distance]*@prob_2[:cube][neighbor][distance-1])
+            if distance < @dim+3
+              temp_prob *= (1-@prob_2[:cross][neighbor][distance-1])
+            end
+          end
+          @prob_2[:cube][node][distance] = 1 - temp_prob
         end
       end
     end
@@ -217,7 +219,7 @@ module ProbabilityVector
   end
 
   def calc_prob_3_cross
-    for distance in 3..(@addlen+1)
+    for distance in 3..(2*@dim+2)
       @size.times do |node|
         cross = self.get_cross_neighbor(node)
         if fault[node] == 1 || fault[cross] == 1
@@ -230,7 +232,7 @@ module ProbabilityVector
   end
 
   def calc_prob_3_cube
-    for distance in 4..@addlen
+    for distance in 4..(2*@dim+2)
       @size.times do |node|
         neighbors = self.get_cube_neighbors(node)
         if fault[node] == 1
