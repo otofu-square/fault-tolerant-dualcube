@@ -83,18 +83,21 @@ module DirectedProbabilityVector
         next if fault[node] == 1
 
         @neighbors[node].each do |target|
+          cube_neighbors = self.get_cube_neighbors(node).reject{|n| n==target}
+
           if distance == 1
             num_of_fault = 0
-            self.get_cube_neighbors(node).reject{|n| n==target}.each do |neighbor|
+            cube_neighbors.reject{|n| n==target}.each do |neighbor|
               num_of_fault += 1 if fault[neighbor] == 1
             end
-            @prob_1[node][target][distance] = ((@dim-1)-num_of_fault)/(@dim-1).to_f
+            @prob_1[node][target][distance] = (cube_neighbors.size-num_of_fault)/cube_neighbors.size.to_f
           else
             temp_prob = 1
-            self.get_cube_neighbors(node).reject{|n| n==target}.each do |neighbor|
+            cube_neighbors.reject{|n| n==target}.each do |neighbor|
               next if fault[neighbor] == 1
-              temp_prob *= 1 - @pre_prob_1[distance]*@prob_1[neighbor][target][distance-1]
+              temp_prob *= 1 - @pre_prob_1[distance]*@prob_1[neighbor][node][distance-1]
             end
+            @prob_1[node][target][distance] = 1 - temp_prob
           end
         end
       end
@@ -113,7 +116,7 @@ module DirectedProbabilityVector
         if fault[node] == 1 || fault[cross] == 1
           @prob_2[:cross][node][distance] = 0.0
         else
-          @prob_2[:cross][node][distance] = distance == 1 ? 1.0 : @prob_1[node][cross][distance-1]
+          @prob_2[:cross][node][distance] = distance == 1 ? 1.0 : @prob_1[cross][node][distance-1]
         end
       end
     end
@@ -122,25 +125,30 @@ module DirectedProbabilityVector
   def calc_prob_2_cube
     for distance in 2..@addlen
       @size.times do |node|
-        neighbors = self.get_cube_neighbors(node)
-        if fault[node] == 1
-          @prob_2[:cube][node][distance] = 0.0
-        else
+        @neighbors[node].each do |target|
+          cube_neighbors = self.get_cube_neighbors(node).reject{|n| n==target}
+
+          # 故障していれば確率値は0とする
+          if fault[node] == 1
+            @prob_2[:cube][node][target][distance] = 0.0
+            next
+          end
+
           if distance == 2
             cnt = 0
-            neighbors.each do |neighbor|
+            cube_neighbors.each do |neighbor|
               cnt += 1 if @prob_2[:cross][neighbor][1] == 1.0
             end
-            @prob_2[:cube][node][2] = cnt / @dim.to_f
+            @prob_2[:cube][node][target][2] = cnt / cube_neighbors.size.to_f
           else
             temp_prob = 1
-            neighbors.each do |neighbor|
-              temp_prob *=  (1-@pre_prob_2[distance]*@prob_2[:cube][neighbor][distance-1])
+            cube_neighbors.each do |neighbor|
+              temp_prob *=  1-@pre_prob_2[distance]*@prob_2[:cube][neighbor][node][distance-1]
               if distance < @dim+3
-                temp_prob *= (1-@prob_2[:cross][neighbor][distance-1])
+                temp_prob *= 1-@prob_2[:cross][neighbor][distance-1]
               end
             end
-            @prob_2[:cube][node][distance] = 1 - temp_prob
+            @prob_2[:cube][node][target][distance] = 1 - temp_prob
           end
         end
       end
@@ -153,33 +161,38 @@ module DirectedProbabilityVector
   end
 
   def calc_prob_3_cross
-    for distance in 3..(@addlen+1)
+    for distance in 3..(2*@dim+2)
       @size.times do |node|
         cross = self.get_cross_neighbor(node)
         if fault[node] == 1 || fault[cross] == 1
           @prob_3[:cross][node][distance] = 0.0
         else
-          @prob_3[:cross][node][distance] = @prob_2[:cube][cross][distance-1]
+          @prob_3[:cross][node][distance] = @prob_2[:cube][cross][node][distance-1]
         end
       end
     end
   end
 
   def calc_prob_3_cube
-    for distance in 4..@addlen
+    for distance in 4..(2*@dim+2)
       @size.times do |node|
-        neighbors = self.get_cube_neighbors(node)
-        if fault[node] == 1
-          @prob_3[:cube][node][distance] = 0.0
-        else
+        @neighbors[node].each do |target|
+          cube_neighbors = self.get_cube_neighbors(node).reject{|n| n==target}
+
+          # 故障していれば確率値は0とする
+          if fault[node] == 1
+            @prob_3[:cube][node][target][distance] = 0.0
+            next
+          end
+
           temp_prob = 1
-          neighbors.each do |neighbor|
-            temp_prob *= (1-@prob_3[:cross][neighbor][distance-1])
+          cube_neighbors.each do |neighbor|
+            temp_prob *= 1-@prob_3[:cross][neighbor][distance-1]
             if distance != 4
-              temp_prob *= (1-@pre_prob_3[distance]*@prob_3[:cube][neighbor][distance-1])
+              temp_prob *= 1-@pre_prob_3[distance]*@prob_3[:cube][neighbor][node][distance-1]
             end
           end
-          @prob_3[:cube][node][distance] = 1 - temp_prob
+          @prob_3[:cube][node][target][distance] = 1 - temp_prob
         end
       end
     end
