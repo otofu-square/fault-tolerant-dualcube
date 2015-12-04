@@ -86,7 +86,7 @@ module ProbabilityVector
           next_node = cube_node
         end
       elsif pre_nodes.empty?
-        if self.get_preffered_nodes(c, d).include?(cross) && @fault[cross]==0
+        if @fault[cross] == 0
           next_node = cross
         else
           next_node = get_detour_node_3(spr_nodes, cross, distance)
