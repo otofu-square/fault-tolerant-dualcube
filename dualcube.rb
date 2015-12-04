@@ -8,8 +8,8 @@ class Dualcube
   attr_accessor :capability, :probability, :preffered_nodes, :cross_status, :fault
 
   include NodePrinter
-  include ProbabilityVector
-# include DirectedProbabilityVector
+  # include ProbabilityVector
+  include DirectedProbabilityVector
 
   def initialize(dim, ratio=0.0)
     @dim             = dim
