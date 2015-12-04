@@ -146,7 +146,11 @@ module ProbabilityVector
   def calc_prob_1
     for distance in 1..@dim
       @size.times do |node|
-        next if fault[node] == 1
+        if fault[node] == 1
+          @prob_1[node][distance] = 0.0
+          next
+        end
+
         if distance == 1
           num_of_fault = 0
           self.get_cube_neighbors(node).each do |neighbor|
