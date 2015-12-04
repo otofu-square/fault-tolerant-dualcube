@@ -1,9 +1,14 @@
 require './dualcube'
 
 class Route
+  def reset_fault
+    @dc.fault = Array.new(@dc.size){|v| v = 0}
+    @dc.set_probability
+  end
+
   def set_fault(arr)
-    # arr.each{|n| @dc.fault[n] = 1}
-    @dc.fault = arr
+    arr.each{|n| @dc.fault[n] = 1}
+    @dc.set_probability
   end
 
   def test_routing
@@ -21,11 +26,12 @@ class Route
     @dc = Dualcube.new(dim)
 
     if ratio == :all
-      p _ratio = 0.1
+      _ratio = 0.1
       while _ratio < 0.4
         cnt = 0
         round.times do
-          p cnt += 1 if random_routing(_ratio) == true
+          cnt += 1 if random_routing(_ratio) == true
+          puts cnt
         end
         res.push "fault=#{_ratio}: #{cnt}/#{10000}"
         _ratio += 0.1
@@ -49,27 +55,24 @@ class Route
     end
     @dc.set_probability
 
-    # p s
-    # p d
-    # p @dc.fault
     res = exec_routing(s, d)
     res.last
   end
 
-  def exec_routing(s, d)
+  def exec_routing(s, d)　
     c, before, next_node, cnt = s, -1, -1, 0
     res = [[s, d]]
-    loop do
+    while(true)
       return res.push true if c == d
       cnt += 1
 
       res.push next_node = @dc.get_next_node(c, d, before)
 
       if next_node == -1 || cnt > 100
-        res.push @dc.fault
         res.push "loop" if cnt > 100
         res.push false
-        pp res
+        #pp res
+        #@dc.print_nodes
         return res
       else
         before = c
