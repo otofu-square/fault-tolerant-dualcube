@@ -1,13 +1,15 @@
 require './lib/bit_counter'
 require './lib/node_printer'
-require './extended_probability'
+require './probability_vector'
+require './directed_probability_vector'
 
 class Dualcube
   attr_reader   :dim, :size, :addlen, :neighbors
   attr_accessor :capability, :probability, :preffered_nodes, :cross_status, :fault
 
   include NodePrinter
-  include ExtendedProbability
+  include ProbabilityVector
+# include DirectedProbabilityVector
 
   def initialize(dim, ratio=0.0)
     @dim             = dim
