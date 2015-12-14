@@ -1,4 +1,5 @@
 require './dualcube'
+require 'yaml'
 
 class Route
   def reset_fault
@@ -25,25 +26,11 @@ class Route
     res = []
     @dc = Dualcube.new(dim)
 
-    if ratio == :all
-      _ratio = 0.1
-      while _ratio < 0.4
-        cnt = 0
-        round.times do
-          cnt += 1 if random_routing(_ratio) == true
-          puts cnt
-        end
-        res.push "fault=#{_ratio}: #{cnt}/#{10000}"
-        _ratio += 0.1
-      end
-    else
-      cnt = 0
-      round.times do
-        cnt += 1 if random_routing(ratio) == true
-      end
-      res.push "fault=#{ratio}: #{cnt}/#{round}"
+    cnt = 0
+    round.times do
+      cnt += 1 if random_routing(ratio) == true
     end
-
+    res.push "fault=#{ratio}: #{cnt}/#{round}"
     pp res
   end
 
@@ -59,7 +46,7 @@ class Route
     res.last
   end
 
-  def exec_routing(s, d)　
+  def exec_routing(s, d)
     c, before, next_node, cnt = s, -1, -1, 0
     res = [[s, d]]
     while(true)
@@ -78,6 +65,25 @@ class Route
         before = c
         c = next_node
       end
+    end
+  end
+
+  def create_situations(dim, ratio, cnt)
+    result = {}
+
+    cnt.times do |i|
+      s, d = 0, 0
+      @dc = Dualcube.new(dim)
+
+      while !@dc.connect?(s, d)
+        @dc.set_fault(ratio)
+        s, d = (0...@dc.size).to_a.sample(2)
+      end
+      result[i] = {s: s, d: d, fault: @dc.fault}
+    end
+
+    open("./situations/situation_#{dim}_#{(ratio*10).to_i}.yml","w") do |f|
+      YAML.dump(result, f)
     end
   end
 end
